@@ -1,26 +1,13 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON from incoming requests
-app.use(express.json());
-
-// Add logging for every request
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
-
-// POST route to receive Roblox userId and fetch badges
-app.post('/', async (req, res) => {
-  console.log('Request body:', req.body);
-
-  const { userId } = req.body;
+app.get('/userid/:userId', async (req, res) => {
+  const userId = req.params.userId;
 
   if (!userId) {
-    return res.status(400).json({ error: 'Missing userId in request body' });
+    return res.status(400).json({ error: 'Missing userId parameter' });
   }
 
   try {
@@ -35,7 +22,7 @@ app.post('/', async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Error fetching badges:', error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
