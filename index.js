@@ -11,21 +11,39 @@ let gameData = {};
 // Checks if a player is VERIFIED!!!
 app.get('/isverified/:userId', async (req, res) => {
   const userId = req.params.userId;
-  if (!userId) return res.status(400).json({ error: 'Missing userId' });
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId parameter' });
+  }
 
   try {
-    const badgeUrl = `https://accountinformation.roblox.com/v1/users/${userId}/roblox-badges`;
-    const badgeResp = await fetch(badgeUrl);
-    if (!badgeResp.ok) {
-      return res.status(502).json({ error: 'Failed to query badge API' });
-    }
-    const badgeData = await badgeResp.json();
-    const hasBadge = badgeData.some(b => b.id === VERIFIED_BADGE_ID);
+    // Fetch profile HTML
+    const profileUrl = `https://www.roblox.com/users/${userId}/profile`;
+    const response = await fetch(profileUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0' // Prevent Roblox from blocking bot-like requests
+      }
+    });
 
-    return res.json({ userId, verified: hasBadge });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'Internal server error', details: e.message });
+    if (!response.ok) {
+      return res.status(502).json({ error: 'Failed to fetch profile page' });
+    }
+
+    const html = await response.text();
+
+    // Check for the verification badge element
+    const hasVerifiedBadge = html.includes('profile-verified-badge-icon');
+
+    return res.json({
+      userId,
+      verified: hasVerifiedBadge
+    });
+
+  } catch (error) {
+    console.error('Error checking verified status:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
   }
 });
 
