@@ -16,26 +16,26 @@ app.get('/isverified/:userId', async (req, res) => {
   }
 
   try {
-    const apiUrl = `https://users.roblox.com/v1/users/${userId}`;
-    const resp = await fetch(apiUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
+    const url = `https://users.roblox.com/v1/users/${userId}`;
+    const response = await fetch(url);
 
-    if (!resp.ok) {
-      return res.status(502).json({ error: 'Failed to fetch Roblox user data' });
+    if (!response.ok) {
+      return res.status(502).json({ error: 'Failed to fetch user data from Roblox' });
     }
 
-    const userData = await resp.json();
+    const data = await response.json();
 
     return res.json({
       userId,
-      verified: userData.isVerified === true
+      verified: data.isVerified === true
     });
+
   } catch (error) {
-    console.error('Error fetching verified status:', error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
+    console.error('Error checking verified status:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
+
 
 // Endpoint for external URL to "send data"
 app.get('/userid/:userId', async (req, res) => {
