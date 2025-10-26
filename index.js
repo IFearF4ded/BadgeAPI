@@ -16,34 +16,24 @@ app.get('/isverified/:userId', async (req, res) => {
   }
 
   try {
-    // Fetch profile HTML
-    const profileUrl = `https://www.roblox.com/users/${userId}/profile`;
-    const response = await fetch(profileUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0' // Prevent Roblox from blocking bot-like requests
-      }
+    const apiUrl = `https://users.roblox.com/v1/users/${userId}`;
+    const resp = await fetch(apiUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
     });
 
-    if (!response.ok) {
-      return res.status(502).json({ error: 'Failed to fetch profile page' });
+    if (!resp.ok) {
+      return res.status(502).json({ error: 'Failed to fetch Roblox user data' });
     }
 
-    const html = await response.text();
-
-    // Check for the verification badge element
-    const hasVerifiedBadge = html.includes('profile-verified-badge-icon');
+    const userData = await resp.json();
 
     return res.json({
       userId,
-      verified: hasVerifiedBadge
+      verified: userData.isVerified === true
     });
-
   } catch (error) {
-    console.error('Error checking verified status:', error);
-    return res.status(500).json({
-      error: 'Internal server error',
-      details: error.message
-    });
+    console.error('Error fetching verified status:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
